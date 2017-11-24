@@ -14,7 +14,6 @@
     		<artifactId>maven-resources-plugin</artifactId>
     		<version>2.4.3</version>
 		</dependency>
-		
 		<!-- unit testing -->
 		<dependency>
 			<groupId>junit</groupId>
