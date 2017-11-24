@@ -3,6 +3,7 @@ package util;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -10,6 +11,24 @@ import org.junit.Test;
 import util.HttpRequestUtils.Pair;
 
 public class HttpRequestUtilsTest {
+	@Test
+	public void parseQueryStringSubString() {
+		String queryString = "userId=javajigi";
+		Map<String, String> parameters = new HashMap<String, String>();
+		
+		int delimiter = queryString.indexOf("=");
+		
+		parameters.put(queryString.substring(0, (delimiter)), 
+					   queryString.substring((delimiter+1), queryString.length()));
+		
+		System.out.println(queryString.substring(0, (delimiter)));
+		System.out.println(queryString.substring((delimiter+1), queryString.length()));
+		
+		assertThat(parameters.get("userId"), is("javajigi"));
+				
+	}
+	
+	
     @Test
     public void parseQueryString() {
         String queryString = "userId=javajigi";
