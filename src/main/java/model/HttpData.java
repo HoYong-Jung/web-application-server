@@ -146,6 +146,10 @@ public class HttpData {
 	public String getUrl() {
 		return url;
 	}
+	
+	public String requestUrl() {
+		return url;
+	}
 
 	public void setUrl(String url) {
 		this.url = url;

@@ -30,8 +30,35 @@ public class RequestHandler extends Thread {
     
     private Map<String, String> httpParamMap;
     
+    private Map<String, User> userList;
+    
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
+    }
+    
+    public void run() {
+        log.debug("New Client Connect! Time : {}, Connected IP : {}, Port : {}", 
+        		WebServer.getTime(), connection.getInetAddress(), connection.getPort());
+
+        InputStreamReader isr = null;
+        BufferedReader br = null;
+        
+        try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
+
+        	inputStreamHandler(in, isr, br);
+        	
+        	log.debug("-----------------------------------");
+            log.debug("http data :" + httpData.toString());
+            log.debug("-----------------------------------");
+            
+            outputStreamHandler(out);
+            
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        } finally {
+			if (br != null) try { br.close(); } catch(Exception e) {log.error(e.getMessage());}
+			if (isr != null) try { isr.close(); } catch(Exception e) {log.error(e.getMessage());}
+		}
     }
 
     public void inputStreamHandler(InputStream in, InputStreamReader isr, BufferedReader br) {
@@ -42,7 +69,7 @@ public class RequestHandler extends Thread {
         try {
         	DataOutputStream dos = new DataOutputStream(out);
         	
-        	byte[] body = getViewPage(this.httpData.getUrl());
+        	byte[] body = requestViewPage(this.httpData.requestUrl());
         	 
             setHeader(dos, body.length, this.httpData);
             setBody(dos, body);
@@ -83,30 +110,6 @@ public class RequestHandler extends Thread {
     			return "Content-Type: text/html;charset=utf-8\r\n";
     	}
     }
-    
-    public void run() {
-        log.debug("New Client Connect! Time : {}, Connected IP : {}, Port : {}", WebServer.getTime(), connection.getInetAddress(), connection.getPort());
-
-        InputStreamReader isr = null;
-        BufferedReader br = null;
-        
-        try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-
-        	inputStreamHandler(in, isr, br);
-        	
-        	log.debug("-----------------------------------");
-            log.debug("http data :" + httpData.toString());
-            log.debug("-----------------------------------");
-            
-            outputStreamHandler(out);
-            
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        } finally {
-			if (br != null) try { br.close(); } catch(Exception e) {log.error(e.getMessage());}
-			if (isr != null) try { isr.close(); } catch(Exception e) {log.error(e.getMessage());}
-		}
-    }
 
     public static String readData(BufferedReader br, int contentLength) throws IOException {
         char[] body = new char[contentLength];
@@ -118,12 +121,23 @@ public class RequestHandler extends Thread {
     	return "Hotshot World".getBytes();
     }
   
-    public byte[] getViewPage(String request) {
+    public byte[] requestViewPage(String request) {
     	
     	if (isJoinMember(request)) {
     		
+    		
     		setQueryString(request);
     		this.statusCode = 302;
+    		
+    		
+    		switch(this.statusCode) {
+    		case 200:
+    			break;
+    		case 302:
+    			break;
+    		}
+    		
+    		
     		
     		return getByteArrayOfViewPage("/index.html");
     	} else {
@@ -168,6 +182,8 @@ public class RequestHandler extends Thread {
     		for (int i = 2; i < values.length; i++)
     			values[1] += values[i];
     	}
+    	
+    	
     	parserQueryString(values[1]);
     }
     
@@ -199,6 +215,6 @@ public class RequestHandler extends Thread {
     }
     
     private boolean isJoinMember(String request) {
-    	return request.contains("/user/create?userId=");
+    	return request.startsWith("/user/create");
     }
 }
